@@ -37,6 +37,9 @@ public static class Program
             // validate and sort mods, this will also discard any mods that are invalid
             var sortedLoadedMods = ValidateMods(loadedMods);
 
+            // update the loadedMods list with our validated sorted mods
+            loadedMods = sortedLoadedMods;
+
             diHandler.AddInjectableTypesFromAssemblies(sortedLoadedMods.SelectMany(a => a.Assemblies));
         }
         diHandler.InjectAll();
