@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using SPTarkov.Common.Semver;
 using SPTarkov.Common.Semver.Implementations;
 using SPTarkov.DI;
+using SPTarkov.Server.Core.Loaders;
 using SPTarkov.Server.Core.Models.Spt.Mod;
 using SPTarkov.Server.Core.Models.Utils;
 using SPTarkov.Server.Core.Servers;
@@ -44,7 +45,24 @@ public static class Program
         builder.Services.AddSingleton<IReadOnlyList<SptMod>>(loadedMods);
         var serviceProvider = builder.Services.BuildServiceProvider();
         var logger = serviceProvider.GetService<ILoggerFactory>().CreateLogger("Server");
+        // Load bundles for bundle mods
+        if (ProgramStatics.MODS())
+        {
+            var bundleLoader = serviceProvider.GetService<BundleLoader>();
+            foreach (var mod in loadedMods)
+            {
+                if (mod.ModMetadata?.IsBundleMod == true)
+                {
+                    // Convert to relative path
+                    string relativeModPath = Path.GetRelativePath(
+                        Directory.GetCurrentDirectory(),
+                        mod.Directory
+                    ).Replace('\\', '/');
 
+                    bundleLoader.AddBundles(relativeModPath);
+                }
+            }
+        }
         try
         {
             SetConsoleOutputMode();
